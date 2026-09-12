@@ -1,0 +1,10 @@
+{
+  "name": "k1ng",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check assets/js/app.js && node --check assets/js/config.js",
+    "serve": "npx serve . -l 8080"
+  }
+}

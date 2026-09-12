@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#09090b" />
+    <meta name="description" content="Games and private social messaging." />
+    <title>k1ng</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>◉</text></svg>" />
+    <link rel="stylesheet" href="./assets/css/app.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <div id="accessGate" class="gate hidden" role="dialog" aria-modal="true">
+      <form id="accessForm" class="gate-card glass">
+        <div class="brand-mark large">K</div>
+        <p class="eyebrow">Private access</p>
+        <h1>This space is locked</h1>
+        <p class="muted">Enter the access password to continue.</p>
+        <label class="field">
+          <span>Password</span>
+          <input id="accessPassword" type="password" required autocomplete="current-password" />
+        </label>
+        <button class="button primary full" type="submit">Unlock</button>
+        <p id="accessError" class="form-error" role="alert"></p>
+      </form>
+    </div>
+
+    <div id="authScreen" class="auth-shell">
+      <section class="auth-copy">
+        <div class="brand"><span class="brand-mark">K</span><span>k1ng</span></div>
+        <p class="eyebrow">Play. Connect. Repeat.</p>
+        <h1>Your games and your people, in one beautiful place.</h1>
+        <p>Discover games, message friends, share moments, and jump into a call without leaving the experience.</p>
+      </section>
+      <section class="auth-card glass">
+        <div class="segmented" role="tablist">
+          <button class="segment active" data-auth-mode="signin" type="button">Sign in</button>
+          <button class="segment" data-auth-mode="signup" type="button">Create account</button>
+        </div>
+        <form id="authForm">
+          <div id="usernameField" class="field hidden">
+            <span>Username</span>
+            <input id="authUsername" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" autocomplete="username" />
+          </div>
+          <label class="field">
+            <span>Email</span>
+            <input id="authEmail" type="email" required autocomplete="email" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="authPassword" type="password" minlength="8" required autocomplete="current-password" />
+          </label>
+          <button id="authSubmit" class="button primary full" type="submit">Continue</button>
+          <p id="authMessage" class="form-message" role="status"></p>
+        </form>
+        <button id="demoButton" class="button ghost full" type="button">Preview without an account</button>
+      </section>
+    </div>
+
+    <div id="appShell" class="app-shell hidden">
+      <aside class="sidebar glass">
+        <a class="brand compact" href="#games"><span class="brand-mark">K</span><span>k1ng</span></a>
+        <nav id="mainNav" class="main-nav" aria-label="Primary">
+          <a class="nav-item active" href="#games" data-view="games"><span>⌁</span>Games</a>
+          <a class="nav-item" href="#chat" data-view="chat"><span>◌</span>Chat <b id="unreadBadge" class="badge hidden">0</b></a>
+          <a class="nav-item" href="#friends" data-view="friends"><span>◎</span>Friends</a>
+          <a class="nav-item" href="#profile" data-view="profile"><span>◉</span>Profile</a>
+          <a id="adminNav" class="nav-item hidden" href="#admin" data-view="admin"><span>◇</span>Admin</a>
+        </nav>
+        <div class="sidebar-footer">
+          <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle theme">◐</button>
+          <button id="signOutButton" class="icon-button" type="button" aria-label="Sign out">↗</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <div id="globalNotice" class="global-notice hidden"></div>
+
+        <section id="gamesView" class="view active">
+          <header class="view-header">
+            <div><p class="eyebrow">Library</p><h1>Find your next game.</h1></div>
+            <div class="header-actions">
+              <label class="search"><span>⌕</span><input id="gameSearch" type="search" placeholder="Search games" /></label>
+              <select id="gameSort" class="select" aria-label="Sort games"><option value="featured">Featured</option><option value="name">Name</option><option value="newest">Newest</option></select>
+            </div>
+          </header>
+          <div id="featuredGames" class="hero-row"></div>
+          <div class="section-heading"><h2>All games</h2><span id="gameCount" class="muted"></span></div>
+          <div id="gameGrid" class="game-grid"><div class="skeleton-grid"></div></div>
+        </section>
+
+        <section id="chatView" class="view">
+          <div class="messenger glass">
+            <aside class="conversation-panel">
+              <div class="panel-title"><div><p class="eyebrow">Messages</p><h2>Chats</h2></div><button id="newChatButton" class="icon-button" type="button" title="New chat">＋</button></div>
+              <label class="search small"><span>⌕</span><input id="chatSearch" type="search" placeholder="Search chats" /></label>
+              <div id="conversationList" class="conversation-list"></div>
+            </aside>
+            <section class="thread-panel">
+              <div id="emptyThread" class="empty-state"><div class="empty-icon">◌</div><h2>Your conversations</h2><p>Select a chat or start a new one.</p></div>
+              <div id="activeThread" class="thread hidden">
+                <header class="thread-header"><div id="threadAvatar" class="avatar"></div><div><h3 id="threadTitle"></h3><p id="typingStatus" class="muted"></p></div><div class="thread-actions"><button id="audioCallButton" class="icon-button" type="button" title="Audio call">⌕</button><button id="videoCallButton" class="icon-button" type="button" title="Video call">▣</button></div></header>
+                <div id="messageList" class="message-list"></div>
+                <div id="uploadPreview" class="upload-preview hidden"></div>
+                <form id="messageForm" class="composer">
+                  <label class="icon-button file-button" title="Add photo or video">＋<input id="mediaInput" type="file" accept="image/*,video/*" multiple /></label>
+                  <button id="recordButton" class="icon-button" type="button" title="Record voice message">●</button>
+                  <textarea id="messageInput" rows="1" maxlength="4000" placeholder="Message"></textarea>
+                  <button class="send-button" type="submit" aria-label="Send">↑</button>
+                </form>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="friendsView" class="view">
+          <header class="view-header"><div><p class="eyebrow">People</p><h1>Friends</h1></div><button id="addFriendButton" class="button primary" type="button">Add friend</button></header>
+          <div class="stat-grid"><article class="stat-card glass"><span class="muted">Your friend code</span><strong id="friendCode">—</strong><button id="copyFriendCode" class="text-button" type="button">Copy link</button></article><article class="stat-card glass"><span class="muted">Requests</span><strong id="requestCount">0</strong></article><article class="stat-card glass"><span class="muted">Friends</span><strong id="friendCount">0</strong></article></div>
+          <div class="split-grid"><section><div class="section-heading"><h2>Requests</h2></div><div id="requestList" class="people-list"></div></section><section><div class="section-heading"><h2>Friends</h2></div><div id="friendList" class="people-list"></div></section></div>
+        </section>
+
+        <section id="profileView" class="view">
+          <header class="view-header"><div><p class="eyebrow">Account</p><h1>Your profile</h1></div></header>
+          <form id="profileForm" class="profile-card glass">
+            <div class="avatar-editor"><img id="profileAvatar" alt="" /><label class="avatar-upload">Change<input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" /></label></div>
+            <label class="field"><span>Username</span><input id="profileUsername" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required /></label>
+            <label class="field"><span>Bio</span><textarea id="profileBio" maxlength="160" rows="3"></textarea></label>
+            <button class="button primary" type="submit">Save profile</button>
+            <p id="profileMessage" class="form-message"></p>
+          </form>
+        </section>
+
+        <section id="adminView" class="view">
+          <header class="view-header"><div><p class="eyebrow">Control center</p><h1>Admin</h1></div></header>
+          <div class="admin-grid">
+            <form id="noticeForm" class="admin-card glass"><h2>Global notification</h2><label class="field"><span>Message</span><textarea id="noticeText" rows="3" maxlength="500"></textarea></label><div class="inline-fields"><label class="field"><span>Show after (seconds)</span><input id="noticeDelay" type="number" min="0" value="0" /></label><label class="field"><span>Hide after (seconds)</span><input id="noticeDuration" type="number" min="0" value="0" /></label></div><label class="switch-row"><input id="noticeEnabled" type="checkbox" /><span>Published</span></label><button class="button primary" type="submit">Save notification</button></form>
+            <form id="lockForm" class="admin-card glass"><h2>Access lock</h2><label class="switch-row"><input id="lockEnabled" type="checkbox" /><span>Require a global password</span></label><label class="field"><span>New password</span><input id="lockPassword" type="password" minlength="8" placeholder="Leave blank to keep current" /></label><button class="button primary" type="submit">Update lock</button><p class="muted">The static files remain public; this gate protects app data and features.</p></form>
+            <form id="gameForm" class="admin-card glass"><h2>Add or update game</h2><input id="gameId" type="hidden" /><label class="field"><span>Name</span><input id="gameName" required /></label><label class="field"><span>Game HTML URL</span><input id="gameUrl" type="url" placeholder="https://… or upload below" /></label><label class="field"><span>Upload self-contained HTML</span><input id="gameFile" type="file" accept=".html,text/html" /></label><label class="field"><span>Cover URL</span><input id="gameCover" type="url" required /></label><label class="field"><span>Author</span><input id="gameAuthor" /></label><label class="switch-row"><input id="gameFeatured" type="checkbox" /><span>Featured</span></label><button class="button primary" type="submit">Publish game</button></form>
+            <section class="admin-card glass wide"><div class="section-heading"><h2>Managed games</h2><button id="refreshAdminGames" class="text-button" type="button">Refresh</button></div><div id="adminGameList" class="admin-list"></div></section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+      <div class="modal glass"><header><h2 id="modalTitle"></h2><button id="modalClose" class="icon-button" type="button">×</button></header><div id="modalBody"></div></div>
+    </div>
+
+    <div id="gameViewer" class="game-viewer hidden">
+      <header><div><p class="eyebrow">Now playing</p><h2 id="viewerTitle"></h2></div><div><button id="viewerFullscreen" class="button ghost" type="button">Fullscreen</button><button id="viewerNewTab" class="button ghost" type="button">New tab</button><button id="viewerClose" class="button primary" type="button">Close</button></div></header>
+      <iframe id="gameFrame" sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-forms allow-modals allow-popups allow-downloads" allow="fullscreen; gamepad; autoplay"></iframe>
+    </div>
+
+    <div id="callOverlay" class="call-overlay hidden">
+      <video id="remoteVideo" autoplay playsinline></video>
+      <video id="localVideo" autoplay playsinline muted></video>
+      <div class="call-info"><h2 id="callTitle">Connecting…</h2><p id="callStatus">Calling</p></div>
+      <div class="call-controls"><button id="muteCall" class="call-button" type="button">Mic</button><button id="cameraCall" class="call-button" type="button">Camera</button><button id="hangupCall" class="call-button danger" type="button">End</button></div>
+    </div>
+
+    <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="./assets/js/app.js"></script>
+  </body>
+</html>

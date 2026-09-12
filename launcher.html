@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>k1ng Loader</title>
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+      body { min-height: 100vh; display: grid; place-items: center; margin: 0; background: #08080a; color: #f7f7fa; }
+      main { width: min(440px, calc(100% - 2rem)); }
+      h1, p { text-align: center; }
+      label { display: grid; gap: .4rem; margin: 1rem 0; color: #aaaab4; font-size: .85rem; font-weight: 700; }
+      input { border: 1px solid #303038; border-radius: 12px; outline: none; background: #16161a; color: white; padding: .8rem .9rem; }
+      input:focus { border-color: #7c5cff; }
+      button { border: 0; border-radius: 14px; padding: .9rem 1.2rem; background: linear-gradient(135deg,#7c5cff,#4da3ff); color: white; font: 700 1rem system-ui; cursor: pointer; }
+      button { width: 100%; margin-top: .5rem; }
+      p { color: #9898a2; line-height: 1.5; }
+      #status { min-height: 1.5rem; font-size: .85rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>k1ng Loader</h1>
+      <p>Preload a GitHub release through jsDelivr, then run it inside a clean about:blank tab.</p>
+      <label>
+        GitHub repository
+        <input id="repository" placeholder="username/repository" autocomplete="off" />
+      </label>
+      <label>
+        Branch or release tag
+        <input id="releaseRef" value="main" autocomplete="off" />
+      </label>
+      <button id="launch" type="button">Launch</button>
+      <p id="status" role="status"></p>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const repositoryInput = document.getElementById("repository");
+      const refInput = document.getElementById("releaseRef");
+      repositoryInput.value = params.get("repo") || localStorage.getItem("k1ng_repository") || "";
+      refInput.value = params.get("ref") || localStorage.getItem("k1ng_release_ref") || "main";
+
+      document.getElementById("launch").addEventListener("click", async () => {
+        const status = document.getElementById("status");
+        const repository = repositoryInput.value.trim();
+        const releaseRef = refInput.value.trim() || "main";
+        if (!/^[\w.-]+\/[\w.-]+$/.test(repository)) {
+          status.textContent = "Enter the repository as username/repository.";
+          return;
+        }
+        localStorage.setItem("k1ng_repository", repository);
+        localStorage.setItem("k1ng_release_ref", releaseRef);
+
+        const target = window.open("about:blank", "_blank");
+        if (!target) {
+          status.textContent = "Allow popups for this page, then try again.";
+          return;
+        }
+        const releaseBase = `https://cdn.jsdelivr.net/gh/${repository}@${encodeURIComponent(releaseRef)}/`;
+        status.textContent = "Preloading release…";
+        try {
+          const paths = ["index.html", "assets/css/app.css", "assets/js/config.js", "assets/js/app.js"];
+          const responses = await Promise.all(
+            paths.map((path) => fetch(`${releaseBase}${path}?t=${Date.now()}`)),
+          );
+          const failedIndex = responses.findIndex((response) => !response.ok);
+          if (failedIndex >= 0) {
+            throw new Error(`${paths[failedIndex]} returned ${responses[failedIndex].status}`);
+          }
+          let [html, css, config, app] = await Promise.all(responses.map((response) => response.text()));
+          const base = `<base href="${releaseBase}">`;
+          html = /<head[\s>]/i.test(html)
+            ? html.replace(/<head([^>]*)>/i, `<head$1>${base}`)
+            : `${base}${html}`;
+          html = html.replace(
+            /<link[^>]+href=["']\.\/assets\/css\/app\.css["'][^>]*>/i,
+            `<style>${css}</style>`,
+          );
+          config = config.replace(/\bexport\s+/g, "");
+          app = app.replace(
+            /import\s+\{\s*APP_CONFIG\s*,\s*isSupabaseConfigured\s*\}\s+from\s+["']\.\/config\.js["'];?/,
+            "",
+          );
+          const bundledModule = `${config}\n${app}`.replace(/<\/script/gi, "<\\/script");
+          html = html.replace(
+            /<script\s+type=["']module["']\s+src=["']\.\/assets\/js\/app\.js["']><\/script>/i,
+            `<script type="module">${bundledModule}<\/script>`,
+          );
+          target.document.open();
+          target.document.write(html);
+          target.document.close();
+          status.textContent = `Loaded ${repository}@${releaseRef}`;
+        } catch (error) {
+          target.close();
+          status.textContent = `Could not load the release: ${error.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>
